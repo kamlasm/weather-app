@@ -1,3 +1,3 @@
-export default function capitaliseCity(city: string) {
-    return city.charAt(0).toUpperCase() + city.slice(1)
+export default function capitalise(phrase: string) {
+    return phrase.charAt(0).toUpperCase() + phrase.slice(1)
 }
