@@ -17,4 +17,16 @@ export default interface WeatherInterface {
             icon: string,
         }[]
     }[]
+    timezone_offset: number,
+    daily: {
+        dt: number,
+        temp: {
+            min: number,
+            max: number,
+        },
+        weather: {
+            description: string,
+            icon: string,
+        }[]
+    }[]
 }
