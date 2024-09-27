@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import fetchWeather from "@/lib/getWeatherData";
 import WeatherInterface from "@/lib/weatherInterface";
 import getLocalTime from "@/lib/getLocalTime";
@@ -7,10 +7,27 @@ import WeatherCardHourly from "./WeatherCardHourly";
 import WeatherCardDaily from "./WeatherCardDaily";
 
 export default function Weather() {
+    const [error, setError] = useState("")
     const [citySearch, setCitySearch] = useState("")
     const [weatherData, setWeatherData] = useState<WeatherInterface | null>(null)
-    const [error, setError] = useState("")
     const [isHourly, setIsHourly] = useState(true)
+    const [favouriteCities, setFavouriteCities] = useState<string[]>([])
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+
+    useEffect(() => {
+        const savedCities = localStorage.getItem("favouriteCities")
+        if (savedCities) {
+            setFavouriteCities(JSON.parse(savedCities))
+        }
+    }, [])
+
+    useEffect(() => {
+        if (favouriteCities.length > 0) {
+            localStorage.setItem("favouriteCities", JSON.stringify(favouriteCities));
+        } else {
+            localStorage.removeItem("favouriteCities")
+        }
+    }, [favouriteCities])
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
         setCitySearch(e.target.value)
@@ -34,6 +51,37 @@ export default function Weather() {
         setIsHourly(prev => !prev)
     }
 
+    function addToFavourites() {
+        if (weatherData && !favouriteCities.includes(weatherData.city)) {
+            const copyFavouriteCities = structuredClone(favouriteCities)
+            copyFavouriteCities.push(weatherData.city)
+            setFavouriteCities(copyFavouriteCities)
+        }
+    }
+
+    function removeFromFavourites(city: string) {
+        const updatedFavourites = favouriteCities.filter(favouriteCity => {
+            return favouriteCity !== city
+        })
+        setFavouriteCities(updatedFavourites)
+    }
+
+    function toggleDropdown() {
+        setIsDropdownOpen(prev => !prev)
+    }
+
+    async function showWeather(city: string) {
+        try {
+            const data = await fetchWeather(city)
+            setWeatherData(data)
+            setCitySearch("")
+            setIsDropdownOpen(false)
+        } catch (error) {
+            console.error(error)
+            setError("City not found. Please try again.")
+        }
+    }
+
     return <div>
         <form onSubmit={handleSearch}>
             <input type="text"
@@ -51,10 +99,41 @@ export default function Weather() {
             </button>
         </form>
 
+        <div className="mt-4">
+            <p className="text-md inline mr-1.5">My Saved Cities</p>
+
+            <button onClick={toggleDropdown} className="space-y-1" aria-label="Toggle favourites dropdown"
+            >
+                <span className="block w-6 h-0.5 bg-gray-800"></span>
+                <span className="block w-6 h-0.5 bg-gray-800"></span>
+                <span className="block w-6 h-0.5 bg-gray-800"></span>
+            </button>
+
+            {isDropdownOpen && (favouriteCities.length > 0 ? (
+                <ul>
+                    {favouriteCities.map((city, index) => (
+                        <li className={`p-1 rounded ${index % 2 === 0 ? "bg-blue-300" : "bg-blue-600"}`} key={city}>
+                            <button className="mr-2" onClick={() => showWeather(city)}>
+                                {city}
+                            </button>
+                            <button className="bg-black text-white px-4 rounded" onClick={() => removeFromFavourites(city)}>
+                                -
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <p>You haven&apos;t saved any cities.</p>
+            ))}
+        </div>
+
         {error && <p className="text-md pt-1 text-red-500">{error}</p>}
 
-        {weatherData && <div className="bg-gray-200 mt-10 px-2 rounded-md">
+        {weatherData && <div className="bg-gray-200 mt-10 px-2 rounded-md relative">
             <h2 className="text-xl pt-2 font-bold">{weatherData.city}</h2>
+            {!favouriteCities.includes(weatherData.city) && <button className="absolute top-2 right-2 bg-black text-white py-1 px-4 rounded" onClick={addToFavourites}>+</button>}
+
+
             <button className="underline" onClick={switchForecast}>{isHourly ? "Switch to Daily Forecast" : "Switch to Hourly Forecast"} </button>
 
             <div className="flex overflow-x-auto space-x-2 py-2 w-full max-w-full sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl scrollbar">
