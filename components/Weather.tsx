@@ -82,57 +82,58 @@ export default function Weather() {
         }
     }
 
-    return <div>
-        <form onSubmit={handleSearch}>
-            <input type="text"
-                className="rounded-md border border-solid border-gray-400 py-1.5 pl-2 pr-15 mr-1 text-gray-900 placeholder:text-gray-400 focus:outline-double focus:border-gray-900 text-sm h-8"
-                placeholder="Enter a city"
-                value={citySearch}
-                onChange={handleChange}
-            />
-            <button
-                className="rounded-md border border-solid border-gray-900 bg-gray-900 text-gray-50 gap-2 hover:bg-gray-700 dark:hover:bg-[#ccc] text-sm h-8 px-4 py-1.5"
-                type="submit"
-                aria-label="Search for weather"
-            >
-                Search
-            </button>
-        </form>
+    return <>
+        <div className="bg-sky-600 w-screen rounded-sm py-10 text-sky-50">
+            <h1 className="text-2xl font-bold mb-4">
+                WEATHER
+            </h1>
+            <form onSubmit={handleSearch} className="text-sm">
+                <input type="text"
+                    className="rounded-md border border-solid border-slate-400 h-8 py-1.5 pl-2 mr-1 text-slate-900 placeholder:text-slate-400 focus:outline-double focus:border-slate-900"
+                    placeholder="Enter a city"
+                    value={citySearch}
+                    onChange={handleChange}
+                />
+                <button
+                    className="rounded-md border border-solid border-slate-900 bg-slate-700 h-8 px-4 py-1.5 hover:bg-slate-900"
+                    type="submit"
+                    aria-label="Search for weather"
+                >
+                    Search
+                </button>
+            </form>
 
-        <div className="mt-4">
-            <p className="text-md inline mr-1.5">My Saved Cities</p>
+            {error && <p className="pt-1 text-red-500">{error}</p>}
 
-            <button onClick={toggleDropdown} className="space-y-1" aria-label="Toggle favourites dropdown"
-            >
-                <span className="block w-6 h-0.5 bg-gray-800"></span>
-                <span className="block w-6 h-0.5 bg-gray-800"></span>
-                <span className="block w-6 h-0.5 bg-gray-800"></span>
-            </button>
-
-            {isDropdownOpen && (favouriteCities.length > 0 ? (
-                <ul>
-                    {favouriteCities.map((city, index) => (
-                        <li className={`p-1 rounded ${index % 2 === 0 ? "bg-blue-300" : "bg-blue-600"}`} key={city}>
-                            <button className="mr-2" onClick={() => showWeather(city)}>
-                                {city}
-                            </button>
-                            <button className="bg-black text-white px-4 rounded" onClick={() => removeFromFavourites(city)}>
-                                -
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p>You haven&apos;t saved any cities.</p>
-            ))}
+            <div>
+                <div className="flex justify-center mt-4">
+                    <p className="mr-1.5 text-sky-50">My Saved Cities</p>
+                    <button onClick={toggleDropdown} aria-label="Toggle favourites dropdown" className=""><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg></button>
+                </div>
+                {isDropdownOpen && (favouriteCities.length > 0 ? (
+                    <ul className="mt-1 text-sm bg-sky-50 font-bold rounded-md">
+                        {favouriteCities.map(city => (
+                            <li className="p-1 text-sky-700 " key={city}>
+                                <button className="mr-3" onClick={() => showWeather(city)}>
+                                    {city}
+                                </button>
+                                <button className="bg-slate-700 text-sm text-sky-50 px-3 rounded" onClick={() => removeFromFavourites(city)}>
+                                    -
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p>You haven&apos;t saved any cities.</p>
+                ))}
+            </div>
         </div>
 
-        {error && <p className="text-md pt-1 text-red-500">{error}</p>}
-
-        {weatherData && <div className="bg-gray-200 mt-10 px-2 rounded-md relative">
+        {weatherData && <div className="bg-slate-200 mt-10 px-2 rounded-md relative">
             <h2 className="text-xl pt-2 font-bold">{weatherData.city}</h2>
-            {!favouriteCities.includes(weatherData.city) && <button className="absolute top-2 right-2 bg-black text-white py-1 px-4 rounded" onClick={addToFavourites}>+</button>}
-
+            {!favouriteCities.includes(weatherData.city) && <button className="absolute top-2 right-2 bg-slate-700 text-sky-50 py-1 px-4 rounded" onClick={addToFavourites}>+</button>}
 
             <button className="underline" onClick={switchForecast}>{isHourly ? "Switch to Daily Forecast" : "Switch to Hourly Forecast"} </button>
 
@@ -172,5 +173,5 @@ export default function Weather() {
 
             </div>
         </div>}
-    </div>
+    </>
 }

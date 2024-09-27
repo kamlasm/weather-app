@@ -2,14 +2,9 @@ import Weather from "@/components/Weather";
 
 export default function Home() {
   return (
-    <div className="min-h-screen p-20 font-[family-name:var(--font-geist-sans)] bg-gray-100">
+    <div className="min-h-screen font-[family-name:var(--font-geist-sans)] bg-sky-50 text-sky-800 text-md">
       <main className="flex flex-col gap-8 items-center text-center">
-        <h1 className="text-2xl font-bold">
-          WEATHER
-        </h1>
-
         <Weather />
-
       </main>
     </div>
   );

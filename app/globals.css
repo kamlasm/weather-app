@@ -31,15 +31,15 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgb(156 163 175); /* Background of the track */
+  background: rgb(148 163 184); /* Background of the track */
   border-radius: 10px; /* Rounded corners for the track */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgb(107 114 128); /* Color of the scrollbar thumb */
+  background: rgb(100 116 139); /* Color of the scrollbar thumb */
   border-radius: 10px; /* Rounded corners for the thumb */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgb(75 85 99); /* Color of the thumb on hover */
+  background: rgb(71 85 105); /* Color of the thumb on hover */
 }
