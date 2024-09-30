@@ -1,10 +1,11 @@
 'use client';
 import React, { useEffect, useState } from "react";
-import fetchWeather from "@/lib/getWeatherData";
+import { fetchWeather, fetchWeatherFromLocation } from "@/lib/getWeatherData";
 import WeatherInterface from "@/lib/weatherInterface";
 import getLocalTime from "@/lib/getLocalTime";
 import WeatherCardHourly from "./WeatherCardHourly";
 import WeatherCardDaily from "./WeatherCardDaily";
+import { MdMyLocation } from "react-icons/md";
 
 export default function Weather() {
     const [error, setError] = useState("")
@@ -13,6 +14,7 @@ export default function Weather() {
     const [isHourly, setIsHourly] = useState(true)
     const [favouriteCities, setFavouriteCities] = useState<string[]>([])
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
 
     useEffect(() => {
         const savedCities = localStorage.getItem("favouriteCities")
@@ -37,6 +39,7 @@ export default function Weather() {
     async function handleSearch(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         setError("")
+        setIsLoading(true)
         try {
             const data = await fetchWeather(citySearch)
             setWeatherData(data)
@@ -44,6 +47,8 @@ export default function Weather() {
         } catch (error) {
             console.error(error)
             setError("City not found. Please try again.")
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -71,6 +76,7 @@ export default function Weather() {
     }
 
     async function showWeather(city: string) {
+        setIsLoading(true)
         try {
             const data = await fetchWeather(city)
             setWeatherData(data)
@@ -79,16 +85,47 @@ export default function Weather() {
         } catch (error) {
             console.error(error)
             setError("City not found. Please try again.")
+        } finally {
+            setIsLoading(false)
         }
     }
 
+    function handleLocationClick() {
+        if (navigator.geolocation) {
+            setIsLoading(true)
+            navigator.geolocation.getCurrentPosition(success, () => {
+                console.error("Error finding geolocation")
+                setError("Error finding geolocation")
+                setIsLoading(false)
+            })
+        } else {
+            setError("Geolocation not supported")
+        }
+    }
+
+    async function success(position: GeolocationPosition) {
+        const latitude = position.coords.latitude
+        const longitude = position.coords.longitude
+        const data = await fetchWeatherFromLocation(latitude, longitude)
+        setWeatherData(data)
+        setError("")
+        setIsLoading(false)
+    }
+
     return <>
-        <div className="bg-sky-600 w-screen rounded-sm py-10 text-sky-50">
+        <section className="bg-sky-600 w-screen rounded-sm py-10 text-sky-50">
             <h1 className="text-2xl font-bold mb-4">
                 WEATHER
             </h1>
-            <form onSubmit={handleSearch} className="text-sm">
-                <input type="text"
+
+            <form onSubmit={handleSearch} className="text-sm flex items-center justify-center">
+                <div className="cursor-pointer mr-1 border rounded-md border-solid border-slate-900 bg-slate-700 py-1 px-1" >
+                    <MdMyLocation size="1.5em" className="fill-sky-50" onClick={handleLocationClick} />
+                </div>
+                <label htmlFor="citySearch" className="sr-only">Enter a city</label>
+                <input
+                    id="citySearch"
+                    type="text"
                     className="rounded-md border border-solid border-slate-400 h-8 py-1.5 pl-2 mr-1 text-slate-900 placeholder:text-slate-400 focus:outline-double focus:border-slate-900"
                     placeholder="Enter a city"
                     value={citySearch}
@@ -98,24 +135,27 @@ export default function Weather() {
                     className="rounded-md border border-solid border-slate-900 bg-slate-700 h-8 px-4 py-1.5 hover:bg-slate-900"
                     type="submit"
                     aria-label="Search for weather"
+                    disabled={isLoading}
                 >
                     Search
                 </button>
             </form>
 
-            {error && <p className="pt-1 text-red-500">{error}</p>}
+            {error && <p className="bg-red-200 pt-1 text-red-500">{error}</p>}
 
             <div>
                 <div className="flex justify-center mt-4">
-                    <p className="mr-1.5 text-sky-50">My Saved Cities</p>
-                    <button onClick={toggleDropdown} aria-label="Toggle favourites dropdown" className=""><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                    </svg></button>
+                    <h3 className="mr-1.5 text-sky-50">My Saved Cities</h3>
+                    <button onClick={toggleDropdown} aria-label="Toggle favourites dropdown">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                    </button>
                 </div>
                 {isDropdownOpen && (favouriteCities.length > 0 ? (
                     <ul className="mt-1 text-sm bg-sky-50 font-bold rounded-md">
                         {favouriteCities.map(city => (
-                            <li className="p-1 text-sky-700 " key={city}>
+                            <li className="p-1 text-sky-700" key={city}>
                                 <button className="mr-3" onClick={() => showWeather(city)}>
                                     {city}
                                 </button>
@@ -129,37 +169,39 @@ export default function Weather() {
                     <p>You haven&apos;t saved any cities.</p>
                 ))}
             </div>
-        </div>
+        </section>
 
-        {weatherData && <div className="bg-slate-200 mt-10 px-2 rounded-md relative">
+        {isLoading && <p>Loading...</p>}
+
+        {weatherData && <section className="bg-slate-200 mt-10 px-2 rounded-md relative">
             <h2 className="text-xl pt-2 font-bold">{weatherData.city}</h2>
-            {!favouriteCities.includes(weatherData.city) && <button className="absolute top-2 right-2 bg-slate-700 text-sky-50 py-1 px-4 rounded" onClick={addToFavourites}>+</button>}
-
-            <button className="underline" onClick={switchForecast}>{isHourly ? "Switch to Daily Forecast" : "Switch to Hourly Forecast"} </button>
+            {!favouriteCities.includes(weatherData.city) && 
+            <button 
+                className="absolute top-2 right-2 bg-slate-700 text-sky-50 py-1 px-4 rounded" 
+                onClick={addToFavourites}
+                aria-label={`Add ${weatherData.city} to favourites`}>
+                +
+            </button>}
+            <button 
+                className="underline" 
+                onClick={switchForecast} 
+                aria-label={`Switch to ${isHourly ? "daily" : "hourly"} forecast`}>{isHourly ? "Switch to Daily Forecast" : "Switch to Hourly Forecast"} 
+            </button>
 
             <div className="flex overflow-x-auto space-x-2 py-2 w-full max-w-full sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl scrollbar">
-
-                {isHourly && weatherData.hourly.map((hourlyWeather, index) => {
+                {isHourly ? weatherData.hourly.map((hourlyWeather, index) => {
                     const isNow = index === 0
                     return <div key={hourlyWeather.dt} className={`flex flex-col items-center text-center p-4 rounded-md flex-none w-32 ${isNow ? "bg-blue-800 text-white" : "bg-blue-200"}`}>
                         <h3 className="text-lg">{isNow ? "Now" : getLocalTime(hourlyWeather.dt, weatherData.timezone_offset, "hourly")}</h3>
-                        {isNow ?
-                            <WeatherCardHourly
-                                temp={weatherData.current.temp}
-                                feels_like={weatherData.current.feels_like}
-                                icon={weatherData.current.weather[0].icon}
-                                description={weatherData.current.weather[0].description}
-                            /> :
-                            <WeatherCardHourly
-                                temp={hourlyWeather.temp}
-                                feels_like={hourlyWeather.feels_like}
-                                icon={hourlyWeather.weather[0].icon}
-                                description={hourlyWeather.weather[0].description}
-                            />}
+                        <WeatherCardHourly
+                            temp={isNow ? weatherData.current.temp : hourlyWeather.temp}
+                            feels_like={isNow ? weatherData.current.feels_like : hourlyWeather.feels_like}
+                            icon={isNow ? weatherData.current.weather[0].icon : hourlyWeather.weather[0].icon}
+                            description={isNow ? weatherData.current.weather[0].description : hourlyWeather.weather[0].description}
+                        />
                     </div>
-                })}
-
-                {!isHourly && weatherData.daily.map((dailyWeather, index) => {
+                })
+                : weatherData.daily.map((dailyWeather, index) => {
                     const isToday = index === 0
                     return <div key={dailyWeather.dt} className={`flex flex-col items-center text-center p-4 rounded-md flex-none w-36 ${isToday ? "bg-blue-800 text-white" : "bg-blue-200"} `}>
                         <h3 className="text-lg">{isToday ? "Today" : getLocalTime(dailyWeather.dt, weatherData.timezone_offset, "daily")}</h3>
@@ -170,8 +212,7 @@ export default function Weather() {
                             description={dailyWeather.weather[0].description} />
                     </div>
                 })}
-
             </div>
-        </div>}
+        </section>}
     </>
 }
