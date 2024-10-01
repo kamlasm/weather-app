@@ -6,6 +6,7 @@ import getLocalTime from "@/lib/getLocalTime";
 import WeatherCardHourly from "./WeatherCardHourly";
 import WeatherCardDaily from "./WeatherCardDaily";
 import { MdMyLocation } from "react-icons/md";
+import { WiSunrise, WiSunset } from "react-icons/wi";
 import Tooltip from "./Tooltip";
 
 export default function Weather() {
@@ -186,11 +187,18 @@ export default function Weather() {
             <div className="flex">
                 <div className="grow">
                     <h2 className="text-xl pt-2 font-bold">{weatherData.city}</h2>
+                    <div className="flex justify-center mt-1">
+                        <WiSunrise size="2em"/>
+                        <p className="mr-2">{getLocalTime(weatherData.current.sunrise, weatherData.timezone_offset, "hourly")}</p>
+                        <WiSunset size="2em" />
+                        <p>{getLocalTime(weatherData.current.sunset, weatherData.timezone_offset, "hourly")}</p>
+                    </div>
                     <button
                         className="underline"
                         onClick={switchForecast}
                         aria-label={`Switch to ${isHourly ? "daily" : "hourly"} forecast`}>{isHourly ? "Switch to Daily Forecast" : "Switch to Hourly Forecast"}
                     </button>
+
                 </div>
                 {!favouriteCities.includes(weatherData.city) && <div className="relative group">
                     <button

@@ -6,7 +6,9 @@ export default interface WeatherInterface {
         weather: {
             description: string,
             icon: string,
-        }[]
+        }[],
+        sunrise: number,
+        sunset: number
     }
     hourly: {
         dt: number,
@@ -27,6 +29,6 @@ export default interface WeatherInterface {
         weather: {
             description: string,
             icon: string,
-        }[]
+        }[],
     }[]
 }
