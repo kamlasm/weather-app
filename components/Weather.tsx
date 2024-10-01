@@ -3,8 +3,7 @@ import React, { useEffect, useState } from "react";
 import { fetchWeather, fetchWeatherFromLocation } from "@/lib/getWeatherData";
 import WeatherInterface from "@/lib/weatherInterface";
 import getLocalTime from "@/lib/getLocalTime";
-import WeatherCardHourly from "./WeatherCardHourly";
-import WeatherCardDaily from "./WeatherCardDaily";
+import WeatherCard from "./WeatherCard";
 import { MdMyLocation } from "react-icons/md";
 import { WiSunrise, WiSunset } from "react-icons/wi";
 import Tooltip from "./Tooltip";
@@ -218,11 +217,12 @@ export default function Weather() {
                     const isNow = index === 0
                     return <div key={hourlyWeather.dt} className={`flex flex-col items-center text-center p-4 rounded-md flex-none w-32 ${isNow ? "bg-blue-800 text-white" : "bg-blue-200"}`}>
                         <h3 className="text-lg">{isNow ? "Now" : getLocalTime(hourlyWeather.dt, weatherData.timezone_offset, "hourly")}</h3>
-                        <WeatherCardHourly
+                        <WeatherCard
                             temp={isNow ? weatherData.current.temp : hourlyWeather.temp}
                             feels_like={isNow ? weatherData.current.feels_like : hourlyWeather.feels_like}
                             icon={isNow ? weatherData.current.weather[0].icon : hourlyWeather.weather[0].icon}
                             description={isNow ? weatherData.current.weather[0].description : hourlyWeather.weather[0].description}
+                            isHourly={true}
                         />
                     </div>
                 })
@@ -230,11 +230,12 @@ export default function Weather() {
                         const isToday = index === 0
                         return <div key={dailyWeather.dt} className={`flex flex-col items-center text-center p-4 rounded-md flex-none w-36 ${isToday ? "bg-blue-800 text-white" : "bg-blue-200"} `}>
                             <h3 className="text-lg">{isToday ? "Today" : getLocalTime(dailyWeather.dt, weatherData.timezone_offset, "daily")}</h3>
-                            <WeatherCardDaily
+                            <WeatherCard
                                 maxTemp={dailyWeather.temp.max}
                                 minTemp={dailyWeather.temp.min}
                                 icon={dailyWeather.weather[0].icon}
-                                description={dailyWeather.weather[0].description} />
+                                description={dailyWeather.weather[0].description}
+                                isHourly={false} />
                         </div>
                     })}
             </div>
