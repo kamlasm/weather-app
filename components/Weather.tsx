@@ -6,6 +6,7 @@ import getLocalTime from "@/lib/getLocalTime";
 import WeatherCardHourly from "./WeatherCardHourly";
 import WeatherCardDaily from "./WeatherCardDaily";
 import { MdMyLocation } from "react-icons/md";
+import Tooltip from "./Tooltip";
 
 export default function Weather() {
     const [error, setError] = useState("")
@@ -119,8 +120,11 @@ export default function Weather() {
             </h1>
 
             <form onSubmit={handleSearch} className="text-sm flex items-center justify-center">
-                <div className="cursor-pointer mr-1 border rounded-md border-solid border-slate-900 bg-slate-700 py-1 px-1" >
+                <div className="cursor-pointer mr-1 border rounded-md border-solid border-slate-900 bg-slate-700 py-1 px-1 relative group hover:bg-slate-900" >
                     <MdMyLocation size="1.5em" className="fill-sky-50" onClick={handleLocationClick} />
+                    <Tooltip
+                        tooltip="Get weather for current location"
+                        position="top" />
                 </div>
                 <label htmlFor="citySearch" className="sr-only">Enter a city</label>
                 <input
@@ -159,9 +163,14 @@ export default function Weather() {
                                 <button className="mr-3" onClick={() => showWeather(city)}>
                                     {city}
                                 </button>
-                                <button className="bg-slate-700 text-sm text-sky-50 px-3 rounded" onClick={() => removeFromFavourites(city)}>
-                                    -
-                                </button>
+                                <div className="relative group inline-block">
+                                    <button className="bg-slate-700 text-sm text-sky-50 px-3 rounded mr-1" onClick={() => removeFromFavourites(city)}>
+                                        -
+                                    </button>
+                                    <Tooltip
+                                        tooltip="Remove from favourites"
+                                        position="left" />
+                                </div>
                             </li>
                         ))}
                     </ul>
@@ -173,20 +182,28 @@ export default function Weather() {
 
         {isLoading && <p>Loading...</p>}
 
-        {weatherData && <section className="bg-slate-200 mt-10 px-2 rounded-md relative">
-            <h2 className="text-xl pt-2 font-bold">{weatherData.city}</h2>
-            {!favouriteCities.includes(weatherData.city) && 
-            <button 
-                className="absolute top-2 right-2 bg-slate-700 text-sky-50 py-1 px-4 rounded" 
-                onClick={addToFavourites}
-                aria-label={`Add ${weatherData.city} to favourites`}>
-                +
-            </button>}
-            <button 
-                className="underline" 
-                onClick={switchForecast} 
-                aria-label={`Switch to ${isHourly ? "daily" : "hourly"} forecast`}>{isHourly ? "Switch to Daily Forecast" : "Switch to Hourly Forecast"} 
-            </button>
+        {weatherData && <section className="bg-slate-200 mt-10 px-2 rounded-md">
+            <div className="flex">
+                <div className="grow">
+                    <h2 className="text-xl pt-2 font-bold">{weatherData.city}</h2>
+                    <button
+                        className="underline"
+                        onClick={switchForecast}
+                        aria-label={`Switch to ${isHourly ? "daily" : "hourly"} forecast`}>{isHourly ? "Switch to Daily Forecast" : "Switch to Hourly Forecast"}
+                    </button>
+                </div>
+                {!favouriteCities.includes(weatherData.city) && <div className="relative group">
+                    <button
+                        className="absolute right-1 mt-2 bg-slate-700 text-sky-50 py-1 px-4 rounded hover:bg-slate-900"
+                        onClick={addToFavourites}
+                        aria-label={`Add ${weatherData.city} to favourites`}>
+                        +
+                    </button>
+                    <Tooltip
+                        tooltip="Save to favourites"
+                        position="bottom" />
+                </div>}
+            </div>
 
             <div className="flex overflow-x-auto space-x-2 py-2 w-full max-w-full sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl scrollbar">
                 {isHourly ? weatherData.hourly.map((hourlyWeather, index) => {
@@ -201,17 +218,17 @@ export default function Weather() {
                         />
                     </div>
                 })
-                : weatherData.daily.map((dailyWeather, index) => {
-                    const isToday = index === 0
-                    return <div key={dailyWeather.dt} className={`flex flex-col items-center text-center p-4 rounded-md flex-none w-36 ${isToday ? "bg-blue-800 text-white" : "bg-blue-200"} `}>
-                        <h3 className="text-lg">{isToday ? "Today" : getLocalTime(dailyWeather.dt, weatherData.timezone_offset, "daily")}</h3>
-                        <WeatherCardDaily
-                            maxTemp={dailyWeather.temp.max}
-                            minTemp={dailyWeather.temp.min}
-                            icon={dailyWeather.weather[0].icon}
-                            description={dailyWeather.weather[0].description} />
-                    </div>
-                })}
+                    : weatherData.daily.map((dailyWeather, index) => {
+                        const isToday = index === 0
+                        return <div key={dailyWeather.dt} className={`flex flex-col items-center text-center p-4 rounded-md flex-none w-36 ${isToday ? "bg-blue-800 text-white" : "bg-blue-200"} `}>
+                            <h3 className="text-lg">{isToday ? "Today" : getLocalTime(dailyWeather.dt, weatherData.timezone_offset, "daily")}</h3>
+                            <WeatherCardDaily
+                                maxTemp={dailyWeather.temp.max}
+                                minTemp={dailyWeather.temp.min}
+                                icon={dailyWeather.weather[0].icon}
+                                description={dailyWeather.weather[0].description} />
+                        </div>
+                    })}
             </div>
         </section>}
     </>
